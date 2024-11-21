@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, Animated } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
 import { FontAwesome } from '@expo/vector-icons';  // Importer les icônes
+import Slider from '@react-native-community/slider';  // Importer Slider de la bibliothèque
+import NeijiLogoWithoutWord from '../../components/NeijiLogoWithoutWord';
+
 
 type RootStackParamList = {
   explore: undefined;
@@ -13,22 +16,32 @@ export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [circleAnimation] = useState(new Animated.Value(0)); // Animation pour le cercle
+  const [circleAnimation] = useState(new Animated.Value(1)); // Valeur initiale de l'échelle
   const [isLiked, setIsLiked] = useState(false); // État pour savoir si l'icône est likée
+  const [audioDuration, setAudioDuration] = useState(0); // Durée totale de l'audio
+  const [audioPosition, setAudioPosition] = useState(0); // Position actuelle de la lecture
 
+  // Démarre l'animation de respiration
   const startCircleAnimation = () => {
     Animated.loop(
-      Animated.timing(circleAnimation, {
-        toValue: 1,
-        duration: 1000, // Durée de l'animation (1 seconde)
-        useNativeDriver: true,
-      })
+      Animated.sequence([
+        Animated.timing(circleAnimation, {
+          toValue: 1.2, // Agrandissement
+          duration: 1500, // Durée pour atteindre la taille maximale
+          useNativeDriver: true,
+        }),
+        Animated.timing(circleAnimation, {
+          toValue: 1, // Rétrogradation
+          duration: 1500, // Durée pour revenir à la taille initiale
+          useNativeDriver: true,
+        }),
+      ])
     ).start();
   };
 
   const stopCircleAnimation = () => {
     circleAnimation.stopAnimation();
-    circleAnimation.setValue(0); // Réinitialiser l'animation
+    circleAnimation.setValue(1); // Réinitialiser à la taille initiale
   };
 
   // Fonction pour charger et jouer l'audio
@@ -45,11 +58,24 @@ export default function HomeScreen() {
       // Charger et lire l'audio
       const { sound } = await Audio.Sound.createAsync(
         { uri: 'http://180.149.197.248:3000/uploads/1732159251318.mp3' },
-        { shouldPlay: true }
+        { shouldPlay: true },
+        (status) => {
+          if (status.isLoaded) {
+            if (status.durationMillis !== undefined) {
+              setAudioDuration(status.durationMillis / 1000); // Durée totale de l'audio en secondes
+            }
+            if (status.positionMillis !== undefined) {
+              setAudioPosition(status.positionMillis / 1000); // Position actuelle en secondes
+            }
+          }
+        }
       );
 
       setSound(sound);
       setIsPlaying(true);
+
+      // Démarrer l'animation quand l'audio commence à jouer
+      startCircleAnimation();
     } catch (error) {
       console.error('Erreur lors de la lecture de l\'audio', error);
     }
@@ -60,6 +86,7 @@ export default function HomeScreen() {
     if (sound) {
       await sound.stopAsync();
       setIsPlaying(false);
+      stopCircleAnimation(); // Arrêter l'animation lorsque l'audio s'arrête
     }
   };
 
@@ -68,38 +95,62 @@ export default function HomeScreen() {
     setIsLiked(!isLiked); // Inverser l'état de l'icône likée
   };
 
+  // Fonction pour gérer la progression du slider
+  const handleSliderChange = (value: number) => {
+    if (sound) {
+      sound.setPositionAsync(value * 1000); // Convertir la valeur du slider en millisecondes
+      setAudioPosition(value); // Mettre à jour la position du slider
+    }
+  };
+
   return (
     <LinearGradient colors={['#FFD04F', '#FF9D2A']} style={styles.background}>
       <View style={styles.container}>
         <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.chevron}>
+            <FontAwesome name="chevron-left" size={30} color="#FFF" />
+          </TouchableOpacity>
           <Text style={styles.headerText}>Exercice de Méditation</Text>
         </View>
 
         <View style={styles.mainContent}>
           <View style={styles.centeredContent}>
-            <Animated.View
-              style={[ 
+            <NeijiLogoWithoutWord />
+
+            {/* <Animated.View
+              style={[
                 styles.circle,
                 {
                   transform: [
                     {
-                      scale: circleAnimation.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [1, 1.2], // Changer la taille du cercle
-                      }),
+                      scale: circleAnimation, // Utilise l'animation continue pour le cercle
                     },
                   ],
                 },
               ]}
-            />
+            /> */}
             <TouchableOpacity
               style={styles.button}
               onPress={isPlaying ? stopAudio : playAudio}
             >
-              <Text style={styles.buttonText}>
-                {isPlaying ? 'Stop Audio' : 'Play Audio'}
-              </Text>
+              <FontAwesome
+                name={isPlaying ? 'stop' : 'play'}
+                size={20}
+                color="#FFF"
+              />
             </TouchableOpacity>
+
+            {/* Slider pour la durée de l'audio */}
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={audioDuration}
+              value={audioPosition}
+              onValueChange={handleSliderChange}
+              thumbTintColor="#FF9D2A"
+              minimumTrackTintColor="#FF9D2A"
+              maximumTrackTintColor="gray"
+            />
           </View>
         </View>
 
@@ -133,6 +184,13 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 50,
     alignItems: 'center',
+    // center text and icon in a row
+  },
+  chevron: {
+    position: 'absolute',
+    left: 20,
+    top: 57, // Ajuster en fonction de la taille du header
+    padding: 10,
   },
   headerText: {
     marginTop: 20,
@@ -152,15 +210,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     padding: 30,
     borderRadius: 50,
+    justifyContent: 'center',
     width: '100%',
     height: '100%',
     alignItems: 'center',
     zIndex: 1, // S'assurer que le contenu principal est au-dessus du footer
   },
   button: {
-    backgroundColor: '#FF9D2A',
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: 'black',
+    padding: 25,
+    borderRadius: 100,
   },
   buttonText: {
     color: '#FFF',
@@ -184,10 +243,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   circle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 100,
     backgroundColor: '#FF9D2A',
-    marginBottom: 30, // Espacement entre le cercle et le bouton
+    marginBottom: 40,
+  },
+  slider: {
+    width: '80%',
+    marginTop: 20,
   },
 });

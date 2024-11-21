@@ -1,17 +1,22 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import MangaImage from '../../components/MangaImage';
 
 export default function ChapterScreen({ route }: any) {
-  const { chapterNumber, title } = route.params;
-
   // Construire l'URL pour récupérer le bon chapitre
-  const apiEndpoint = `https://api.example.com/manga/chapter/${chapterNumber}`;
+  const apiEndpoint = `http://180.149.197.248:3000/uploads/1732159622840.png`;
+
+  const handleSkip = () => {
+    console.log('Skip button pressed!');
+    // Ajoutez ici la logique pour passer au chapitre suivant ou toute autre action
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <MangaImage apiEndpoint={apiEndpoint} />
+      <MangaImage />
+      <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+        <Text style={styles.skipButtonText}>Skip</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -21,10 +26,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 24,
+  skipButton: {
+    position: 'absolute', // Toujours visible en bas de l'écran
+    bottom: 20,
+    left: '50%',
+    transform: [{ translateX: -50 }], // Centrer horizontalement
+    backgroundColor: 'black', // Couleur de fond du bouton
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 100,
+  },
+  skipButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginVertical: 10,
   },
 });

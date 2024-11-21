@@ -1,67 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, Image, StyleSheet, View, ActivityIndicator } from 'react-native';
-import axios from 'axios';
-
-interface MangaImageProps {
-  apiEndpoint: string; // L'endpoint spécifique pour récupérer l'image
-}
-
-const MangaImage: React.FC<MangaImageProps> = ({ apiEndpoint }) => {
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchImage = async () => {
-      try {
-        const response = await axios.get(apiEndpoint);
-        setImageUri(response.data.image); // Assumes the API returns an object with an `image` URL
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchImage();
-  }, [apiEndpoint]);
-
-  if (loading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#FFD04F" />
-      </View>
-    );
-  }
-
-  return (
-    <ScrollView style={styles.container}>
-      {imageUri && (
-        <Image
-          source={{ uri: imageUri }}
-          style={styles.image}
-          resizeMode="contain"
-        />
-      )}
-    </ScrollView>
-  );
-};
+import React, {useState, useEffect} from 'react';
+import {Image, StyleSheet, ScrollView, Dimensions} from 'react-native';
+import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
   },
   image: {
-    width: '100%',
-    height: undefined,
-    aspectRatio: 9 / 16, // Ajuste selon tes images
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
+    width: Dimensions.get('window').width, // Prendre toute la largeur de l'écran
+    resizeMode: 'contain', // Maintient les proportions de l'image
   },
 });
 
-export default MangaImage;
+const DisplayAnImage = () => {
+  const [imageHeight, setImageHeight] = useState(0);
+  const screenWidth = Dimensions.get('window').width;
+
+  useEffect(() => {
+    // Calculer automatiquement la hauteur de l'image pour respecter ses proportions
+    Image.getSize(
+      'http://180.149.197.248:3000/uploads/1732159622840.png',
+      (width, height) => {
+        const calculatedHeight = (screenWidth / width) * height;
+        setImageHeight(calculatedHeight);
+      },
+      () => console.error('Erreur de chargement de l\'image'),
+    );
+  }, [screenWidth]);
+
+  return (
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <ScrollView>
+          <Image
+            style={[styles.image, {height: imageHeight}]}
+            source={{
+              uri: 'http://180.149.197.248:3000/uploads/1732159622840.png',
+            }}
+          />
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
+  );
+};
+
+export default DisplayAnImage;
