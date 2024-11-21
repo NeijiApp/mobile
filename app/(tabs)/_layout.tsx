@@ -46,6 +46,12 @@ export default function TabLayout() {
           title: 'Onboarding 4',
         }}
         />
+      <Stack.Screen
+        name='audioplayer'
+        options={{
+          title: 'Audio Player',
+        }}
+      />
     </Stack>
   );
 }

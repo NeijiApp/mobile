@@ -8,6 +8,7 @@ import NeijiLogoWithoutWord from '../../components/NeijiLogoWithoutWord';
 type RootStackParamList = {
   explore: undefined;
   onboarding1: undefined;
+  audioplayer: undefined;
 };
 
 export default function HomeScreen() {
@@ -27,7 +28,7 @@ export default function HomeScreen() {
         {/* Buttons in column */}
         <View style={styles.buttonsContainer}>
           <TouchableOpacity style={[styles.button, styles.buttonDark]} onPress={() => {
-            navigation.navigate('onboarding1');
+            navigation.navigate('audioplayer');
           }}>
             <Text style={[styles.buttonText, styles.buttonTextWhite ]}>Rejoins-nous</Text>
           </TouchableOpacity>
