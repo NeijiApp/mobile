@@ -30,7 +30,7 @@ export default function HomeScreen() {
         {/* Buttons in column */}
         <View style={styles.buttonsContainer}>
           <TouchableOpacity style={[styles.button, styles.buttonDark]} onPress={() => {
-            navigation.navigate('first');
+            navigation.navigate('onboarding1');
           }}>
             <Text style={[styles.buttonText, styles.buttonTextWhite ]}>Rejoins-nous</Text>
           </TouchableOpacity>

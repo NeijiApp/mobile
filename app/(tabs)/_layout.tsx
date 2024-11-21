@@ -12,6 +12,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
+          gestureEnabled: false,
+
         }}
       />
       
@@ -20,24 +22,31 @@ export default function TabLayout() {
         name="explore"
         options={{
           title: 'Explore',
+          gestureEnabled: false,
+
         }}
       />
       <Stack.Screen
         name='onboarding1'
         options={{
           title: 'Onboarding 1',
+          gestureEnabled: false,
+
         }}
       />
       <Stack.Screen
         name='onboarding2'
         options={{
           title: 'Onboarding 2',
+          gestureEnabled: false,
+
         }}
       />
       <Stack.Screen
         name='onboarding3'
         options={{
           title: 'Onboarding 3',
+          gestureEnabled: false,
         }}
       />
       <Stack.Screen
@@ -50,6 +59,32 @@ export default function TabLayout() {
         name='audioplayer'
         options={{
           title: 'Audio Player',
+          gestureEnabled: false,
+
+        }}
+      />
+      <Stack.Screen
+        name='chatbot'
+        options={{
+          title: 'Chatbot',
+          gestureEnabled: false,
+
+        }}
+      />
+      <Stack.Screen
+        name='manga'
+        options={{
+          title: 'Manga',
+          gestureEnabled: false,
+
+        }}
+      />
+      <Stack.Screen
+        name='first'
+        options={{
+          title: 'First',
+          gestureEnabled: false,
+
         }}
       />
     </Stack>

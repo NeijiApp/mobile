@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons'; // Pour le chevron
 
 // Define the type for the navigation parameter
 type RootStackParamList = {
-    explore: undefined;
+    first: undefined;
     onboarding2: undefined;
 };
 
@@ -36,7 +36,7 @@ export default function HomeScreen() {
                 {/* Conteneur des éléments de navigation et des bullets */}
                 <View style={styles.footerContainer}>
                     {/* Button Passer */}
-                    <TouchableOpacity onPress={() => navigation.navigate('explore')}>
+                    <TouchableOpacity onPress={() => navigation.navigate('first')}>
                         <Text style={styles.buttonText}>Passer</Text>
                     </TouchableOpacity>
 

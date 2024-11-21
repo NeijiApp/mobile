@@ -14,7 +14,7 @@ export default function HomeScreen() {
 
   type RootStackParamList = {
     explore: undefined; // Page sans paramètre
-    manga: { id: number; title: string }; // Page avec paramètres
+    manga: undefined; // Page avec paramètre
   };
   
 
@@ -24,7 +24,7 @@ export default function HomeScreen() {
       style={styles.background}
     >
       <View style={styles.container}>
-        <TouchableOpacity onPress={() => navigation.navigate('explore')}>
+        <TouchableOpacity onPress={() => navigation.navigate('manga')}>
           <NeijiLogoOnboarding3 />
         </TouchableOpacity>
         <Text style={styles.title}>Mon histoire</Text>
@@ -36,7 +36,7 @@ export default function HomeScreen() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() =>  navigation.navigate('manga', { id: 1, title: 'Chapitre 1' })}
+            onPress={() =>  navigation.navigate('manga')}
           >
             <Text style={styles.buttonText}>C'est par ici</Text>
           </TouchableOpacity>

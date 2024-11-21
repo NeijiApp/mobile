@@ -1,13 +1,20 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import MangaImage from '../../components/MangaImage';
+
+type RootStackParamList = {
+  first: undefined;
+};
 
 export default function ChapterScreen({ route }: any) {
   // Construire l'URL pour récupérer le bon chapitre
   const apiEndpoint = `http://180.149.197.248:3000/uploads/1732159622840.png`;
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
 
   const handleSkip = () => {
-    console.log('Skip button pressed!');
+    navigation.navigate('first');
     // Ajoutez ici la logique pour passer au chapitre suivant ou toute autre action
   };
 
