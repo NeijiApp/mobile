@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, FlatList, Keyboard, KeyboardAvoidingView, TouchableWithoutFeedback, Platform } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons'; // Si tu veux un bouton avec FontAwesome
 
-// Remplacez par votre clé API OpenAI
-const OPENAI_API_KEY = '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';
+const OPENAI_API_KEY = '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'; // Remplace par ta clé API OpenAI
 const API_URL = 'https://api.openai.com/v1/completions';
 
 export default function ChatbotScreen() {
@@ -51,50 +50,55 @@ export default function ChatbotScreen() {
       }
     }
   };
-  
-  
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <FontAwesome name="arrow-left" size={24} color="#FFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Neiji Chat Bot</Text>
-      </View>
-
-      {/* Liste des messages */}
-      <FlatList
-        data={messages}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View
-            style={[
-              styles.message,
-              item.sender === 'user' ? styles.userMessage : styles.botMessage,
-            ]}
-          >
-            <Text style={styles.messageText}>{item.text}</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Adapte le comportement selon le système d'exploitation
+    >
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View style={styles.innerContainer}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <FontAwesome name="arrow-left" size={24} color="#FFF" />
+            </TouchableOpacity>
+            <Text style={styles.headerText}>Neiji Chat Bot</Text>
           </View>
-        )}
-        contentContainerStyle={styles.messagesContainer}
-      />
 
-      {/* Champ de saisie et bouton */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Tapez un message..."
-          placeholderTextColor={'#888'}
-          value={input}
-          onChangeText={setInput}
-        />
-        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
-          <FontAwesome name="send" size={20} color="#FFF" />
-        </TouchableOpacity>
-      </View>
-    </View>
+          {/* Liste des messages */}
+          <FlatList
+            data={messages}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <View
+                style={[
+                  styles.message,
+                  item.sender === 'user' ? styles.userMessage : styles.botMessage,
+                ]}
+              >
+                <Text style={styles.messageText}>{item.text}</Text>
+              </View>
+            )}
+            contentContainerStyle={styles.messagesContainer}
+          />
+
+          {/* Champ de saisie et bouton */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Tapez un message..."
+              placeholderTextColor={'#888'}
+              value={input}
+              onChangeText={setInput}
+            />
+            <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+              <FontAwesome name="send" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -102,6 +106,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  innerContainer: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
