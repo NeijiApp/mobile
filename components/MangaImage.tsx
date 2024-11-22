@@ -19,7 +19,7 @@ const DisplayAnImage = () => {
   useEffect(() => {
     // Calculer automatiquement la hauteur de l'image pour respecter ses proportions
     Image.getSize(
-      'http://180.149.197.248:3000/uploads/1732159622840.png',
+      'http://180.149.197.248:3000/uploads/1732262615479.png',
       (width, height) => {
         const calculatedHeight = (screenWidth / width) * height;
         setImageHeight(calculatedHeight);
@@ -35,7 +35,7 @@ const DisplayAnImage = () => {
           <Image
             style={[styles.image, {height: imageHeight}]}
             source={{
-              uri: 'http://180.149.197.248:3000/uploads/1732159622840.png',
+              uri: 'http://180.149.197.248:3000/uploads/1732262615479.png',
             }}
           />
         </ScrollView>

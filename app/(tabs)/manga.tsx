@@ -9,7 +9,7 @@ type RootStackParamList = {
 
 export default function ChapterScreen({ route }: any) {
   // Construire l'URL pour récupérer le bon chapitre
-  const apiEndpoint = `http://180.149.197.248:3000/uploads/1732159622840.png`;
+  const apiEndpoint = `http://180.149.197.248:3000/uploads/1732262615479.png`;
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
 
