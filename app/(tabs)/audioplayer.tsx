@@ -39,6 +39,16 @@ export default function HomeScreen() {
     ).start();
   };
 
+  useEffect(() => {
+    // Cette fonction sera appelée lorsque le composant sera démonté
+    return () => {
+      if (sound) {
+        sound.pauseAsync(); // Met en pause l'audio
+        sound.unloadAsync(); // Décharge le son pour libérer la mémoire
+      }
+    };
+  }, [sound]);
+
   const stopCircleAnimation = () => {
     circleAnimation.stopAnimation();
     circleAnimation.setValue(1); // Réinitialiser à la taille initiale
@@ -84,7 +94,7 @@ export default function HomeScreen() {
   // Fonction pour arrêter le son
   const stopAudio = async () => {
     if (sound) {
-      await sound.stopAsync();
+      await sound.pauseAsync();
       setIsPlaying(false);
       stopCircleAnimation(); // Arrêter l'animation lorsque l'audio s'arrête
     }
