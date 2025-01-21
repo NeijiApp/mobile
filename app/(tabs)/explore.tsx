@@ -9,6 +9,8 @@ type RootStackParamList = {
   explore: undefined;
   onboarding1: undefined;
   audioplayer: undefined;
+  login1: undefined;
+  register: undefined;
   manga: undefined;
   first: undefined;
 };
@@ -30,7 +32,7 @@ export default function HomeScreen() {
         {/* Buttons in column */}
         <View style={styles.buttonsContainer}>
           <TouchableOpacity style={[styles.button, styles.buttonDark]} onPress={() => {
-            navigation.navigate('onboarding1');
+            navigation.navigate('login1');
           }}>
             <Text style={[styles.buttonText, styles.buttonTextWhite ]}>Rejoins-nous</Text>
           </TouchableOpacity>
