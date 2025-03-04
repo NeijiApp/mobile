@@ -24,7 +24,7 @@ export default function ChatbotScreen() {
           {
             model: 'gpt-3.5-turbo', // Assurez-vous d'utiliser un modèle valide
             messages: [
-              { role: 'system', content: 'Tu es Neiji, un mentor et guide bienveillant spécialisé en santé mentale pour les jeunes. Tu réponds avec chaleur, sagesse et une touche de narration immersive liée à ton lore. Utilise des réponses motivantes, engageantes et adaptées au public Gen-Z.' },
+              { role: 'system', content: 'You are Neiji, a supportive and insightful mentor specializing in mental well-being. Respond with warmth, wisdom, and a balance of scientific accuracy and empathy. Your answers should be motivating, engaging, and easy to understand, using a friendly and approachable tone.' },
               ...newMessages.map((msg) => ({
                 role: msg.sender === 'user' ? 'user' : 'assistant',
                 content: msg.text,
