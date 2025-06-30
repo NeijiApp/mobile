@@ -17,7 +17,6 @@ const { height } = Dimensions.get('window');
 
 // Define the type for the navigation parameter
 type RootStackParamList = {
-  explore: undefined;
   onboarding1: undefined;
   audioplayer: undefined;
   login1: undefined;
@@ -48,11 +47,11 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#FFD04F" />
-      <LinearGradient
-        colors={['#FFD04F', '#FF9D2A', '#FF6B35']}
-        style={styles.background}
-      >
+      <StatusBar barStyle="dark-content" backgroundColor="#fff7ed" />
+              <LinearGradient
+          colors={['#fff7ed', '#ffedd5', '#fed7aa']}
+          style={styles.background}
+        >
         <Animated.View style={[
           styles.content,
           {
@@ -78,10 +77,10 @@ export default function HomeScreen() {
               onPress={() => navigation.navigate('login1')}
               activeOpacity={0.8}
             >
-              <LinearGradient
-                colors={['#2C2C2C', '#1A1A1A']}
-                style={styles.buttonGradient}
-              >
+                              <LinearGradient
+                  colors={['#f97316', '#ea580c']}
+                  style={styles.buttonGradient}
+                >
                 <Text style={styles.buttonText}>Ask Neiji</Text>
                 <Ionicons name="chatbubble" size={18} color="white" style={styles.buttonIcon} />
               </LinearGradient>
@@ -96,20 +95,20 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           
-          <View style={styles.quickFeatures}>
-            <View style={styles.feature}>
-              <Ionicons name="musical-notes" size={20} color="rgba(255,255,255,0.8)" />
-              <Text style={styles.featureText}>Custom Audio</Text>
-            </View>
-            <View style={styles.feature}>
-              <Ionicons name="book" size={20} color="rgba(255,255,255,0.8)" />
-              <Text style={styles.featureText}>Manga Stories</Text>
-            </View>
-            <View style={styles.feature}>
-              <Ionicons name="trending-up" size={20} color="rgba(255,255,255,0.8)" />
-              <Text style={styles.featureText}>Performance</Text>
-            </View>
-          </View>
+                     <View style={styles.quickFeatures}>
+             <View style={styles.feature}>
+               <Ionicons name="musical-notes" size={20} color="#f97316" />
+               <Text style={styles.featureText}>Custom Audio</Text>
+             </View>
+             <View style={styles.feature}>
+               <Ionicons name="book" size={20} color="#f97316" />
+               <Text style={styles.featureText}>Manga Stories</Text>
+             </View>
+             <View style={styles.feature}>
+               <Ionicons name="trending-up" size={20} color="#f97316" />
+               <Text style={styles.featureText}>Performance</Text>
+             </View>
+           </View>
         </Animated.View>
       </LinearGradient>
     </View>
@@ -135,23 +134,26 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: 'white',
+    fontSize: 34,
+    fontWeight: '900',
+    color: '#1f2937',
     textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: 38,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    marginBottom: 18,
+    lineHeight: 40,
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.05)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   subtitle: {
-    fontSize: 18,
-    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 17,
+    color: '#4b5563',
     textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 24,
-    paddingHorizontal: 10,
+    marginBottom: 45,
+    lineHeight: 26,
+    paddingHorizontal: 15,
+    fontWeight: '500',
+    letterSpacing: 0.2,
   },
   buttonContainer: {
     width: '100%',
@@ -161,13 +163,13 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     width: '90%',
-    borderRadius: 16,
+    borderRadius: 18,
     overflow: 'hidden',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    elevation: 10,
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
   },
   buttonGradient: {
     flexDirection: 'row',
@@ -179,27 +181,33 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: 'white',
+    letterSpacing: 0.5,
   },
   buttonIcon: {
     marginLeft: 8,
   },
   secondaryButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    minHeight: 48,
+    paddingVertical: 16,
+    paddingHorizontal: 36,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderWidth: 0,
+    minHeight: 52,
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   secondaryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
+    fontWeight: '700',
+    color: '#1f2937',
     textAlign: 'center',
+    letterSpacing: 0.3,
   },
   quickFeatures: {
     flexDirection: 'row',
@@ -213,8 +221,9 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontWeight: '500',
+    color: '#374151',
+    fontWeight: '600',
     textAlign: 'center',
+    letterSpacing: 0.2,
   },
 });

@@ -7,7 +7,6 @@ import Input from "../../components/Input";
 
 // Define the type for the navigation parameter
 type RootStackParamList = {
-  explore: undefined;
   onboarding1: undefined;
   audioplayer: undefined;
   manga: undefined;

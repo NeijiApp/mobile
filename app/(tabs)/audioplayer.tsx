@@ -9,7 +9,6 @@ import NeijiLogoWithoutWord from '../../components/NeijiLogoWithoutWord';
 
 
 type RootStackParamList = {
-  explore: undefined;
 };
 
 export default function HomeScreen() {

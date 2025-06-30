@@ -17,15 +17,7 @@ export default function TabLayout() {
         }}
       />
       
-      {/* L'écran Explore */}
-      <Stack.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          gestureEnabled: false,
 
-        }}
-      />
       <Stack.Screen
         name='onboarding1'
         options={{

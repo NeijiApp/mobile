@@ -6,16 +6,11 @@ import NeijiLogoOnboarding3 from '../../components/NeijiLogoOnboarding3';
 
 // Define the type for the navigation parameter
 type RootStackParamList = {
-  explore: undefined;
+  manga: undefined; // Page avec paramètre
 };
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
-  type RootStackParamList = {
-    explore: undefined; // Page sans paramètre
-    manga: undefined; // Page avec paramètre
-  };
   
 
   return (

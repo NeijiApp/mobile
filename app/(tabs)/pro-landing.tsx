@@ -18,7 +18,6 @@ const { width, height } = Dimensions.get('window');
 
 // Define the type for the navigation parameter
 type RootStackParamList = {
-  explore: undefined;
   onboarding1: undefined;
   audioplayer: undefined;
   login1: undefined;

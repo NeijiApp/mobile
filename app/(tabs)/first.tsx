@@ -6,7 +6,6 @@ import { FontAwesome } from '@expo/vector-icons'; // Import FontAwesome
 import TreeConnexion from '../../components/TreeConnexion'; // Import de votre logo
 
 type RootStackParamList = {
-    explore: undefined;
     chatbot: undefined;
     manga: undefined;
     audioplayer: undefined;
