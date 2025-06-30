@@ -5,8 +5,14 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+// import * as Sentry from '@sentry/react-native';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+
+// Configuration Sentry (optionnel)
+// Sentry.init({
+//   dsn: 'YOUR_SENTRY_DSN_HERE',
+// });
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
