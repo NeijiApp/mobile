@@ -30,7 +30,11 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+
+# Configuration API (contient des clés sensibles)
+config/api.ts
 
 # typescript
 *.tsbuildinfo

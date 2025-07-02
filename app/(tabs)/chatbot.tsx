@@ -19,8 +19,10 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Utilisation temporaire de la clé API
-const OPENAI_API_KEY = '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';
+import { API_CONFIG } from '../../config/api';
+
+// Configuration API sécurisée
+const OPENAI_API_KEY = API_CONFIG.OPENAI_API_KEY;
 
 const { height, width } = Dimensions.get('window');
 
@@ -318,30 +320,30 @@ function ChatbotContent() {
               isLast={index === messages.length - 1}
             />
           ))}
+          
+          {/* Indicateur de frappe intégré dans les messages */}
+          {isLoading && (
+            <View style={styles.messageContainer}>
+              <View style={styles.avatarSection}>
+                <View style={styles.avatarContainer}>
+                  <Image 
+                    source={require('../../utils/picture/NeijiHeadLogo1.4.png')} 
+                    style={styles.neijiAvatar}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text style={styles.neijiName}>Neiji</Text>
+              </View>
+              <View style={styles.typingBubble}>
+                <View style={styles.typingDots}>
+                  <Animated.View style={[styles.typingDot, styles.dot1]} />
+                  <Animated.View style={[styles.typingDot, styles.dot2]} />
+                  <Animated.View style={[styles.typingDot, styles.dot3]} />
+                </View>
+              </View>
+            </View>
+          )}
         </ScrollView>
-
-        {/* Indicateur de frappe */}
-        {isLoading && (
-          <View style={styles.typingContainer}>
-            <View style={styles.avatarSection}>
-              <View style={styles.avatarContainer}>
-                <Image 
-                  source={require('../../utils/picture/NeijiHeadLogo1.4.png')} 
-                  style={styles.neijiAvatar}
-                  resizeMode="contain"
-                />
-              </View>
-              <Text style={styles.neijiName}>Neiji</Text>
-            </View>
-            <View style={styles.typingBubble}>
-              <View style={styles.typingDots}>
-                <Animated.View style={[styles.typingDot, styles.dot1]} />
-                <Animated.View style={[styles.typingDot, styles.dot2]} />
-                <Animated.View style={[styles.typingDot, styles.dot3]} />
-              </View>
-            </View>
-          </View>
-        )}
 
         {/* Barre du bas */}
         <View style={inputWrapperStyle}>
@@ -514,12 +516,6 @@ const styles = StyleSheet.create({
   },
   
   // Indicateur de frappe
-  typingContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
   typingBubble: {
     backgroundColor: '#FF7043',
     borderRadius: 12,
