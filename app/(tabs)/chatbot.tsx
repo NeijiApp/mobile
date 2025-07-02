@@ -380,7 +380,7 @@ function ChatbotContent() {
               style={[styles.meditationButton, styles.meditationButtonActive]}
             >
               <Ionicons 
-                name="star" 
+                name="leaf" 
                 size={24} 
                 color="#FFFFFF" 
               />

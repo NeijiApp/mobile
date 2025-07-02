@@ -4,6 +4,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from '@expo/vector-icons'; // Import FontAwesome
 import TreeConnexion from '../../components/TreeConnexion'; // Import de votre logo
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type RootStackParamList = {
     chatbot: undefined;
@@ -13,6 +14,7 @@ type RootStackParamList = {
 
 export default function HomeScreen() {
     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+    const insets = useSafeAreaInsets();
 
     // Liste des étapes du parcours utilisateur
     const steps = [
@@ -34,7 +36,7 @@ export default function HomeScreen() {
     return (
         <LinearGradient colors={['#FFD04F', '#FF9D2A']} style={styles.background}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { top: Math.max(50, insets.top + 20) }]}>
                 <View style={styles.accountLevel}>
                     <Text style={styles.accountLevelText}>105 xp</Text>
                 </View>
@@ -44,7 +46,7 @@ export default function HomeScreen() {
             </View>
 
             {/* Contenu principal */}
-            <View style={styles.container}>
+            <View style={[styles.container, { paddingBottom: Math.max(20, insets.bottom + 20) }]}>
                 {/* Parcours avec les étapes */}
                 <View style={styles.stepsContainer}>
                     {steps.map((step, index) => (

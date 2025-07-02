@@ -4,6 +4,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import NeijiLogoOnboarding4 from '../../components/NeijiLogoOnboarding4';
 import { Ionicons } from '@expo/vector-icons'; // Pour le chevron
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Define the type for the navigation parameter
 type RootStackParamList = {
@@ -13,6 +14,7 @@ type RootStackParamList = {
 
 export default function HomeScreen() {
     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+    const insets = useSafeAreaInsets();
 
     // State pour gérer l'étape de l'onboarding
     const [currentStep, setCurrentStep] = useState(3);
@@ -28,12 +30,14 @@ export default function HomeScreen() {
             style={styles.background}
         >
             <View style={styles.container}>
-                <NeijiLogoOnboarding4 />
+                <View style={styles.logoContainer}>
+                    <NeijiLogoOnboarding4 />
+                </View>
                 <Text style={styles.greetingText}>Des exercices scientifiquement vérifiés !</Text>
                 <Text style={styles.subText}>Si tu as des questions cliques sur le point d’interrogation pour accéder à nos sources et faire tes propres recherches</Text>
 
                 {/* Conteneur des éléments de navigation et des bullets */}
-                <View style={styles.footerContainer}>
+                <View style={[styles.footerContainer, { paddingBottom: Math.max(20, insets.bottom + 10) }]}>
                     {/* Button Passer */}
                     <TouchableOpacity onPress={() => navigation.navigate('first')}>
                         <Text style={styles.buttonText}>Passer</Text>
@@ -68,6 +72,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    logoContainer: {
+        marginBottom: 40,
+    },
     greetingText: {
         marginTop: 20,
         fontSize: 40,
@@ -89,7 +96,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         position: 'absolute',
         bottom: 0,
-        marginBottom: 20,
     },
     bulletsContainer: {
         flexDirection: 'row',

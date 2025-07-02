@@ -8,6 +8,7 @@ import {
   Animated,
   Dimensions
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,6 +29,7 @@ type RootStackParamList = {
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -96,7 +98,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           
-                     <View style={styles.quickFeatures}>
+                     <View style={[styles.quickFeatures, { paddingBottom: Math.max(20, insets.bottom + 10) }]}>
              <View style={styles.feature}>
                <Ionicons name="musical-notes" size={20} color="#f97316" />
                <Text style={styles.featureText}>Custom Audio</Text>

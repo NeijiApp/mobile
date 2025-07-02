@@ -4,6 +4,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import NeijiLogoOnboarding1 from '../../components/NeijiLogoOnboarding1';
 import { Ionicons } from '@expo/vector-icons'; // Pour le chevron
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Define the type for the navigation parameter
 type RootStackParamList = {
@@ -13,6 +14,7 @@ type RootStackParamList = {
 
 export default function HomeScreen() {
     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+    const insets = useSafeAreaInsets();
 
     // State pour gérer l'étape de l'onboarding
     const [currentStep, setCurrentStep] = useState(1);
@@ -28,13 +30,15 @@ export default function HomeScreen() {
             style={styles.background}
         >
             <View style={styles.container}>
-                <NeijiLogoOnboarding1 />
+                <View style={styles.logoContainer}>
+                    <NeijiLogoOnboarding1 />
+                </View>
                 <Text style={styles.greetingText}>Salut à toi !</Text>
                 <Text style={styles.subText}>Bien arrivé ?</Text>
                 <Text style={styles.subText}>Laisse moi te guider pas à pas</Text>
 
                 {/* Conteneur des éléments de navigation et des bullets */}
-                <View style={styles.footerContainer}>
+                <View style={[styles.footerContainer, { paddingBottom: Math.max(20, insets.bottom + 10) }]}>
                     {/* Button Passer */}
                     <TouchableOpacity onPress={() => navigation.navigate('first')}>
                         <Text style={styles.buttonText}>Passer</Text>
@@ -69,6 +73,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    logoContainer: {
+        marginBottom: 40,
+    },
     greetingText: {
         marginTop: 20,
         fontSize: 40,
@@ -90,7 +97,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         position: 'absolute',
         bottom: 0,
-        marginBottom: 20,
     },
     bulletsContainer: {
         flexDirection: 'row',
