@@ -12,7 +12,10 @@ import {
   Dimensions,
   Image,
   Pressable,
-  Keyboard
+  Keyboard,
+  Modal,
+  Alert,
+  Vibration
 } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
@@ -176,8 +179,22 @@ function ChatbotContent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [meditationMode, setMeditationMode] = useState(false);
+  const [meditationMode, setMeditationMode] = useState(true); // Toujours en mode méditation
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  
+  // États pour le modal de méditation
+  const [showMeditationModal, setShowMeditationModal] = useState(false);
+  const [meditationConfig, setMeditationConfig] = useState({
+    duration: 0,
+    goal: '',
+    voice: 'female',
+    ambiance: 'silence',
+    description: ''
+  });
+  const [isCreatingMeditation, setIsCreatingMeditation] = useState(false);
+  const [showCustomDuration, setShowCustomDuration] = useState(false);
+  const [customDurationInput, setCustomDurationInput] = useState('');
+  
   const navigation = useNavigation();
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
@@ -356,13 +373,16 @@ function ChatbotContent() {
             </TouchableOpacity>
 
             <TouchableOpacity 
-              onPress={() => setMeditationMode(!meditationMode)}
-              style={[styles.settingsButton, meditationMode && styles.settingsButtonActive]}
+              onPress={() => {
+                Vibration.vibrate(50);
+                setShowMeditationModal(true);
+              }}
+              style={[styles.meditationButton, styles.meditationButtonActive]}
             >
               <Ionicons 
-                name="settings-outline" 
+                name="star" 
                 size={24} 
-                color={meditationMode ? "#FF7043" : "#666"} 
+                color="#FFFFFF" 
               />
             </TouchableOpacity>
 
@@ -395,6 +415,264 @@ function ChatbotContent() {
           </View>
         </View>
       </View>
+
+      {/* Modal de Méditation */}
+      <Modal
+        visible={showMeditationModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowMeditationModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          {/* Header */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>🧘‍♀️ Créer une Méditation</Text>
+            <TouchableOpacity 
+              onPress={() => setShowMeditationModal(false)}
+              style={styles.closeButton}
+            >
+              <Ionicons name="close" size={24} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            {/* Durée */}
+            <View style={styles.configSection}>
+              <Text style={styles.configLabel}>⏰ Durée de la méditation</Text>
+              <View style={styles.optionsGrid}>
+                {[2, 5, 10, 15].map((duration) => (
+                  <TouchableOpacity
+                    key={duration}
+                    style={[
+                      styles.optionButton,
+                      meditationConfig.duration === duration && styles.optionButtonSelected
+                    ]}
+                    onPress={() => {
+                      Vibration.vibrate(30);
+                      setMeditationConfig(prev => ({ ...prev, duration }));
+                    }}
+                  >
+                    <Text style={[
+                      styles.optionText,
+                      meditationConfig.duration === duration && styles.optionTextSelected
+                    ]}>
+                      {duration} min
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    (meditationConfig.duration > 15 || showCustomDuration) && styles.optionButtonSelected
+                  ]}
+                  onPress={() => {
+                    Vibration.vibrate(30);
+                    setShowCustomDuration(!showCustomDuration);
+                    if (showCustomDuration) {
+                      // Fermer et appliquer la durée
+                      const duration = parseInt(customDurationInput || '0');
+                      if (duration >= 1 && duration <= 60) {
+                        setMeditationConfig(prev => ({ ...prev, duration }));
+                      }
+                      setCustomDurationInput('');
+                    }
+                  }}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    (meditationConfig.duration > 15 || showCustomDuration) && styles.optionTextSelected
+                  ]}>
+                    {meditationConfig.duration > 15 ? `${meditationConfig.duration} min` : 'Autre'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Input pour durée personnalisée */}
+              {showCustomDuration && (
+                <View style={styles.customDurationContainer}>
+                  <TextInput
+                    style={styles.customDurationInput}
+                    placeholder="Durée en minutes (1-60)"
+                    placeholderTextColor="#9CA3AF"
+                    value={customDurationInput}
+                    onChangeText={setCustomDurationInput}
+                    keyboardType="number-pad"
+                    maxLength={2}
+                  />
+                  <TouchableOpacity
+                    style={styles.customDurationButton}
+                    onPress={() => {
+                      const duration = parseInt(customDurationInput || '0');
+                      if (duration >= 1 && duration <= 60) {
+                        setMeditationConfig(prev => ({ ...prev, duration }));
+                        setShowCustomDuration(false);
+                        setCustomDurationInput('');
+                        Vibration.vibrate(30);
+                      }
+                    }}
+                  >
+                    <Text style={styles.customDurationButtonText}>OK</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
+            {/* Objectif */}
+            <View style={styles.configSection}>
+              <Text style={styles.configLabel}>🎯 Quel est votre objectif ?</Text>
+              <View style={styles.optionsGrid}>
+                {[
+                  { key: 'relaxation', label: '😌 Relaxation', color: '#10B981' },
+                  { key: 'concentration', label: '🧠 Concentration', color: '#3B82F6' },
+                  { key: 'sommeil', label: '😴 Sommeil', color: '#8B5CF6' },
+                  { key: 'reveil', label: '🌅 Réveil', color: '#F59E0B' }
+                ].map((goal) => (
+                  <TouchableOpacity
+                    key={goal.key}
+                    style={[
+                      styles.optionButton,
+                      meditationConfig.goal === goal.key && { ...styles.optionButtonSelected, backgroundColor: goal.color }
+                    ]}
+                    onPress={() => {
+                      Vibration.vibrate(30);
+                      setMeditationConfig(prev => ({ ...prev, goal: goal.key }));
+                    }}
+                  >
+                    <Text style={[
+                      styles.optionText,
+                      meditationConfig.goal === goal.key && styles.optionTextSelected
+                    ]}>
+                      {goal.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Voix */}
+            <View style={styles.configSection}>
+              <Text style={styles.configLabel}>🗣️ Voix du guide</Text>
+              <View style={styles.optionsRow}>
+                {[
+                  { key: 'female', label: '👩 Femme' },
+                  { key: 'male', label: '👨 Homme' }
+                ].map((voice) => (
+                  <TouchableOpacity
+                    key={voice.key}
+                    style={[
+                      styles.optionButton,
+                      styles.optionButtonHalf,
+                      meditationConfig.voice === voice.key && styles.optionButtonSelected
+                    ]}
+                    onPress={() => {
+                      Vibration.vibrate(30);
+                      setMeditationConfig(prev => ({ ...prev, voice: voice.key }));
+                    }}
+                  >
+                    <Text style={[
+                      styles.optionText,
+                      meditationConfig.voice === voice.key && styles.optionTextSelected
+                    ]}>
+                      {voice.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Ambiance */}
+            <View style={styles.configSection}>
+              <Text style={styles.configLabel}>🎵 Son d'ambiance</Text>
+              <View style={styles.optionsGrid2x2}>
+                {[
+                  { key: 'silence', label: '🔇 Silence' },
+                  { key: 'ocean', label: '🌊 Océan' },
+                  { key: 'rain', label: '🌧️ Pluie' },
+                  { key: 'nature', label: '🌿 Nature' }
+                ].map((ambiance) => (
+                  <TouchableOpacity
+                    key={ambiance.key}
+                    style={[
+                      styles.optionButton,
+                      styles.optionButtonQuarter,
+                      meditationConfig.ambiance === ambiance.key && styles.optionButtonSelected
+                    ]}
+                    onPress={() => {
+                      Vibration.vibrate(30);
+                      setMeditationConfig(prev => ({ ...prev, ambiance: ambiance.key }));
+                    }}
+                  >
+                    <Text style={[
+                      styles.optionText,
+                      meditationConfig.ambiance === ambiance.key && styles.optionTextSelected
+                    ]}>
+                      {ambiance.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Description */}
+            <View style={styles.configSection}>
+              <Text style={styles.configLabel}>✨ Décrivez votre état ou vos besoins (optionnel)</Text>
+              <TextInput
+                style={styles.descriptionInput}
+                placeholder="Ex: Je me sens stressé après ma journée de travail..."
+                placeholderTextColor="#9CA3AF"
+                value={meditationConfig.description}
+                onChangeText={(text) => setMeditationConfig(prev => ({ ...prev, description: text }))}
+                multiline
+                textAlignVertical="top"
+              />
+            </View>
+          </ScrollView>
+
+          {/* Bouton de génération */}
+          <View style={styles.modalFooter}>
+            <TouchableOpacity
+              style={[
+                styles.createButton,
+                (!meditationConfig.duration || !meditationConfig.goal || isCreatingMeditation) && styles.createButtonDisabled
+              ]}
+              disabled={!meditationConfig.duration || !meditationConfig.goal || isCreatingMeditation}
+              onPress={async () => {
+                if (!meditationConfig.duration || !meditationConfig.goal) return;
+                
+                setIsCreatingMeditation(true);
+                Vibration.vibrate(50);
+                
+                try {
+                  // Simuler la création de méditation
+                  await new Promise(resolve => setTimeout(resolve, 2000));
+                  
+                  // Fermer le modal et ajouter un message
+                  setShowMeditationModal(false);
+                  setIsCreatingMeditation(false);
+                  
+                  const meditationMessage: Message = {
+                    id: Date.now().toString(),
+                    content: `🧘‍♀️ Voici votre méditation personnalisée de ${meditationConfig.duration} minutes pour la ${meditationConfig.goal}. Installez-vous confortablement et commencez quand vous êtes prêt.`,
+                    role: 'assistant',
+                    timestamp: new Date(),
+                    isAnimating: true
+                  };
+                  
+                  setMessages(prev => [...prev, meditationMessage]);
+                  
+                } catch (error) {
+                  setIsCreatingMeditation(false);
+                  Alert.alert('Erreur', 'Impossible de créer la méditation. Veuillez réessayer.');
+                }
+              }}
+            >
+              <Text style={styles.createButtonText}>
+                {isCreatingMeditation ? '🔄 Création en cours...' : '🧘‍♀️ Créer ma Méditation'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -582,6 +860,24 @@ const styles = StyleSheet.create({
   settingsButtonActive: {
     backgroundColor: '#ffe6e0',
   },
+  meditationButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  meditationButtonInactive: {
+    backgroundColor: '#3B82F6', // Bleu
+  },
+  meditationButtonActive: {
+    backgroundColor: '#F97316', // Orange
+  },
   inputContainer: {
     flex: 1,
     flexDirection: 'row',
@@ -608,5 +904,144 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     opacity: 0.5,
+  },
+
+  // Styles du Modal de Méditation
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    flex: 1,
+    textAlign: 'center',
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  configSection: {
+    marginBottom: 24,
+  },
+  configLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  optionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  optionsGrid2x2: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  optionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  optionButtonSelected: {
+    backgroundColor: '#F97316',
+    borderColor: '#F97316',
+  },
+  optionButtonHalf: {
+    flex: 1,
+  },
+  optionButtonQuarter: {
+    width: '48%',
+  },
+  optionText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  optionTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  descriptionInput: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#374151',
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  modalFooter: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  createButton: {
+    backgroundColor: '#F97316',
+    borderRadius: 12,
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  createButtonDisabled: {
+    backgroundColor: '#D1D5DB',
+  },
+  createButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  customDurationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  customDurationInput: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#374151',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  customDurationButton: {
+    backgroundColor: '#F97316',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  customDurationButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });
