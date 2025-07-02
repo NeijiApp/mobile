@@ -23,6 +23,7 @@ type RootStackParamList = {
   register: undefined;
   manga: undefined;
   first: undefined;
+  chatbot: undefined;
 };
 
 export default function HomeScreen() {
@@ -74,7 +75,7 @@ export default function HomeScreen() {
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
               style={styles.primaryButton}
-              onPress={() => navigation.navigate('login1')}
+              onPress={() => navigation.navigate('chatbot')}
               activeOpacity={0.8}
             >
                               <LinearGradient

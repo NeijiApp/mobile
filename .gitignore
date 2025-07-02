@@ -39,3 +39,11 @@ app-example
 
 # Reference files (temporary)
 reference-files/
+
+# Web reference code to copy to app
+web-reference/
+*.web-ref.js
+*.web-ref.tsx
+*.web-ref.ts
+*.web-ref.jsx
+web-code-temp/
