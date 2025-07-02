@@ -284,20 +284,20 @@ function ChatbotContent() {
     }
   };
 
-  // Calcul des positions
-  const inputWrapperStyle = {
-    ...styles.inputWrapper,
-    bottom: keyboardHeight > 0 
-      ? keyboardHeight + 10
-      : Math.max(20, insets.bottom + 10),
-  };
+     // Calcul des positions
+   const inputWrapperStyle = {
+     ...styles.inputWrapper,
+     bottom: keyboardHeight > 0 
+       ? keyboardHeight + 60 // Ajustement final pour position parfaite
+       : Math.max(20, insets.bottom + 10),
+   };
 
-  const messagesContainerStyle = {
-    ...styles.messagesContainer,
-    paddingBottom: keyboardHeight > 0 
-      ? keyboardHeight + 120
-      : Math.max(120, insets.bottom + 100),
-  };
+     const messagesContainerStyle = {
+     ...styles.messagesContainer,
+     paddingBottom: keyboardHeight > 0 
+       ? keyboardHeight + 180 // Ajusté pour la position finale
+       : Math.max(120, insets.bottom + 100),
+   };
 
   return (
     <View style={styles.container}>
