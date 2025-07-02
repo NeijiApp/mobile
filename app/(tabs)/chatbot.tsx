@@ -5,19 +5,18 @@ import {
   Text, 
   TextInput, 
   TouchableOpacity, 
-  FlatList, 
-  KeyboardAvoidingView, 
+  ScrollView, 
   Platform,
   StatusBar,
   Animated,
   Dimensions,
   Image,
-  Pressable
+  Pressable,
+  Keyboard
 } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Utilisation temporaire de la clé API
@@ -27,9 +26,9 @@ const { height, width } = Dimensions.get('window');
 
 // Calcul responsive selon les spécifications
 const getMaxBubbleWidth = () => {
-  if (width < 375) return width * 0.85; // Petit écran
-  if (width <= 414) return width * 0.75; // Moyen
-  return width * 0.70; // Grand écran
+  if (width < 375) return width * 0.85;
+  if (width <= 414) return width * 0.75;
+  return width * 0.70;
 };
 
 interface Message {
@@ -37,33 +36,174 @@ interface Message {
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
+  isAnimating?: boolean;
 }
+
+// Composant TypewriterText COMPLÈTEMENT ISOLÉ
+const TypewriterMessage = ({ message }: { message: Message }) => {
+  const [displayText, setDisplayText] = useState('');
+  const [showCursor, setShowCursor] = useState(true);
+  const [isComplete, setIsComplete] = useState(false);
+  const intervalRef = useRef<any>(null);
+  const cursorRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!message.isAnimating) {
+      setDisplayText(message.content);
+      setShowCursor(false);
+      setIsComplete(true);
+      return;
+    }
+
+    let index = 0;
+    setDisplayText('');
+    setIsComplete(false);
+
+    intervalRef.current = setInterval(() => {
+      if (index <= message.content.length) {
+        setDisplayText(message.content.substring(0, index));
+        index++;
+      } else {
+        clearInterval(intervalRef.current);
+        clearInterval(cursorRef.current);
+        setShowCursor(false);
+        setIsComplete(true);
+      }
+    }, 18);
+
+    cursorRef.current = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 500);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (cursorRef.current) clearInterval(cursorRef.current);
+    };
+  }, [message.id, message.content, message.isAnimating]);
+
+  return (
+    <Text style={styles.botMessageText}>
+      {displayText}
+      {showCursor && !isComplete && message.isAnimating && (
+        <Text style={styles.cursor}>|</Text>
+      )}
+    </Text>
+  );
+};
+
+// Composant Message STABLE
+const MessageItem = ({ message, isLast }: { message: Message; isLast: boolean }) => {
+  const isBot = message.role === 'assistant';
+  const animValue = useRef(new Animated.Value(0)).current;
+  const slideValue = useRef(new Animated.Value(10)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(animValue, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideValue, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, []);
+
+    if (isBot) {
+    return (
+      <Animated.View 
+        style={[
+          styles.messageContainer,
+          styles.botMessageContainer,
+          {
+            opacity: animValue,
+            transform: [{ translateY: slideValue }]
+          }
+        ]}
+      >
+        <View style={styles.avatarSection}>
+          <View style={styles.avatarContainer}>
+            <Image 
+              source={require('../../utils/picture/NeijiHeadLogo1.4.png')} 
+              style={styles.neijiAvatar}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={styles.neijiName}>Neiji</Text>
+        </View>
+        
+        <View style={[
+          styles.messageBubble,
+          styles.botBubble,
+          { maxWidth: getMaxBubbleWidth() }
+        ]}>
+          <TypewriterMessage message={message} />
+        </View>
+      </Animated.View>
+    );
+  } else {
+    // Message utilisateur - structure différente pour coller à droite
+    return (
+      <Animated.View 
+        style={[
+          styles.userMessageWrapper,
+          {
+            opacity: animValue,
+            transform: [{ translateY: slideValue }]
+          }
+        ]}
+      >
+        <View style={[
+          styles.messageBubble,
+          styles.userBubble,
+          { maxWidth: getMaxBubbleWidth() }
+        ]}>
+          <Text style={styles.userMessageText}>
+            {message.content}
+          </Text>
+        </View>
+      </Animated.View>
+    );
+  }
+};
 
 function ChatbotContent() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [meditationMode, setMeditationMode] = useState<boolean>(false);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [meditationMode, setMeditationMode] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const navigation = useNavigation();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const flatListRef = useRef<FlatList>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-
-    // Message d'accueil selon spécifications
+    // Message d'accueil
     const welcomeMessage: Message = {
       id: '0',
       content: "Hey ! What is the one thing you want to improve in your life today ?",
       role: 'assistant',
-      timestamp: new Date()
+      timestamp: new Date(),
+      isAnimating: true
     };
     setMessages([welcomeMessage]);
+
+    // Gestion du clavier
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
   }, []);
 
   const sendMessage = async () => {
@@ -75,13 +215,15 @@ function ChatbotContent() {
         timestamp: new Date()
       };
 
-      const newMessages = [...messages, userMessage];
+      // Marquer tous les messages précédents comme non-animés
+      const updatedMessages = messages.map(msg => ({ ...msg, isAnimating: false }));
+      const newMessages = [...updatedMessages, userMessage];
       setMessages(newMessages);
       setInput('');
       setIsLoading(true);
 
       setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
+        scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
 
       try {
@@ -114,13 +256,14 @@ function ChatbotContent() {
           id: (Date.now() + 1).toString(),
           content: response.data.choices[0].message.content,
           role: 'assistant',
-          timestamp: new Date()
+          timestamp: new Date(),
+          isAnimating: true // Seul le nouveau message s'anime
         };
 
         setMessages([...newMessages, botMessage]);
         
         setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
+          scrollViewRef.current?.scrollToEnd({ animated: true });
         }, 100);
 
       } catch (error: any) {
@@ -130,7 +273,8 @@ function ChatbotContent() {
           id: (Date.now() + 1).toString(),
           content: "Je rencontre une difficulté technique. Pourriez-vous réessayer dans un moment ?",
           role: 'assistant',
-          timestamp: new Date()
+          timestamp: new Date(),
+          isAnimating: true
         };
         
         setMessages([...newMessages, errorMessage]);
@@ -140,173 +284,45 @@ function ChatbotContent() {
     }
   };
 
-  // Animation typewriter selon spécifications (15-20ms par caractère)
-  const TypewriterText = ({ text }: { text: string }) => {
-    const [displayedText, setDisplayedText] = useState('');
-    const [showCursor, setShowCursor] = useState(true);
-    const [currentIndex, setCurrentIndex] = useState(0);
-
-    useEffect(() => {
-      let index = 0;
-      const timer = setInterval(() => {
-        if (index <= text.length) {
-          setDisplayedText(text.substring(0, index));
-          setCurrentIndex(index);
-          index++;
-        } else {
-          clearInterval(timer);
-          setShowCursor(false);
-        }
-      }, 18); // 18ms par caractère (dans la fourchette 15-20ms)
-
-      // Animation du curseur clignotant
-      const cursorTimer = setInterval(() => {
-        setShowCursor(prev => !prev);
-      }, 500);
-
-      return () => {
-        clearInterval(timer);
-        clearInterval(cursorTimer);
-      };
-    }, [text]);
-
-    return (
-      <Text style={styles.botMessageText}>
-        {displayedText}
-        {showCursor && currentIndex <= text.length && (
-          <Text style={styles.cursor}>|</Text>
-        )}
-      </Text>
-    );
-  };
-
-  // Animation d'apparition selon spécifications (fade-in + slide-up)
-  const MessageBubble = ({ item, index }: { item: Message; index: number }) => {
-    const isBot = item.role === 'assistant';
-    const isLast = index === messages.length - 1;
-    const animValue = useRef(new Animated.Value(0)).current;
-    const slideValue = useRef(new Animated.Value(10)).current;
-    const scaleValue = useRef(new Animated.Value(1)).current;
-
-    useEffect(() => {
-      // Animation d'apparition (fade-in + slide-up 300ms ease-out)
-      Animated.parallel([
-        Animated.timing(animValue, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideValue, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        })
-      ]).start();
-    }, []);
-
-    // Animation au tap (scale 0.98)
-    const handlePressIn = () => {
-      Animated.timing(scaleValue, {
-        toValue: 0.98,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const handlePressOut = () => {
-      Animated.timing(scaleValue, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    return (
-      <Animated.View 
-        style={[
-          styles.messageContainer,
-          isBot ? styles.botMessageContainer : styles.userMessageContainer,
-          {
-            opacity: animValue,
-            transform: [
-              { translateY: slideValue },
-              { scale: scaleValue }
-            ]
-          }
-        ]}
-      >
-        {/* Avatar Neiji selon spécifications (40x40px, 8px d'espacement) */}
-        {isBot && (
-          <View style={styles.avatarSection}>
-            <View style={styles.avatarContainer}>
-              <Image 
-                source={require('../../utils/picture/NeijiHeadLogo1.4.png')} 
-                style={styles.neijiAvatar}
-                resizeMode="contain"
-              />
-            </View>
-            <Text style={styles.neijiName}>Neiji</Text>
-          </View>
-        )}
-        
-        {/* Bulle avec spécifications exactes */}
-        <Pressable
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          style={[
-            styles.messageBubble,
-            isBot ? styles.botBubble : styles.userBubble,
-            { maxWidth: getMaxBubbleWidth() }
-          ]}
-        >
-          {isBot && isLast && !isLoading ? (
-            <TypewriterText text={item.content} />
-          ) : (
-            <Text style={isBot ? styles.botMessageText : styles.userMessageText}>
-              {item.content}
-            </Text>
-          )}
-        </Pressable>
-      </Animated.View>
-    );
-  };
-
-  // Calcul dynamique des positions
+  // Calcul des positions
   const inputWrapperStyle = {
     ...styles.inputWrapper,
-    bottom: Math.max(20, insets.bottom + 10),
+    bottom: keyboardHeight > 0 
+      ? keyboardHeight + 10
+      : Math.max(20, insets.bottom + 10),
   };
 
   const messagesContainerStyle = {
     ...styles.messagesContainer,
-    paddingBottom: Math.max(120, insets.bottom + 100),
+    paddingBottom: keyboardHeight > 0 
+      ? keyboardHeight + 120
+      : Math.max(120, insets.bottom + 100),
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        {/* Messages avec recyclage optimisé */}
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => <MessageBubble item={item} index={index} />}
+      <View style={styles.keyboardContainer}>
+        {/* Messages avec ScrollView au lieu de FlatList */}
+        <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={messagesContainerStyle}
           showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          removeClippedSubviews={true} // Performance pour longues conversations
-          maxToRenderPerBatch={10}
-          windowSize={10}
-        />
+          onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+        >
+          {messages.map((message, index) => (
+            <MessageItem 
+              key={message.id} 
+              message={message} 
+              isLast={index === messages.length - 1}
+            />
+          ))}
+        </ScrollView>
 
-        {/* Indicateur de frappe avec animation */}
+        {/* Indicateur de frappe */}
         {isLoading && (
-          <Animated.View style={styles.typingContainer}>
+          <View style={styles.typingContainer}>
             <View style={styles.avatarSection}>
               <View style={styles.avatarContainer}>
                 <Image 
@@ -324,13 +340,12 @@ function ChatbotContent() {
                 <Animated.View style={[styles.typingDot, styles.dot3]} />
               </View>
             </View>
-          </Animated.View>
+          </View>
         )}
 
-        {/* Barre du bas selon spécifications */}
+        {/* Barre du bas */}
         <View style={inputWrapperStyle}>
           <View style={styles.bottomBar}>
-            {/* Bouton User (orange) */}
             <TouchableOpacity 
               onPress={() => navigation.goBack()}
               style={styles.userButton}
@@ -338,7 +353,6 @@ function ChatbotContent() {
               <Ionicons name="person" size={24} color="white" />
             </TouchableOpacity>
 
-            {/* Bouton Paramètres/Méditation */}
             <TouchableOpacity 
               onPress={() => setMeditationMode(!meditationMode)}
               style={[styles.settingsButton, meditationMode && styles.settingsButtonActive]}
@@ -350,7 +364,6 @@ function ChatbotContent() {
               />
             </TouchableOpacity>
 
-            {/* Input avec bouton send intégré */}
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.textInput}
@@ -379,7 +392,7 @@ function ChatbotContent() {
             </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 }
@@ -395,19 +408,20 @@ export default function ChatbotScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff8f0', // Beige chaud selon spécifications
+    backgroundColor: '#fff8f0',
   },
   keyboardContainer: {
     flex: 1,
   },
   messagesContainer: {
-    paddingHorizontal: 16, // 16px minimum du bord selon spécifications
+    paddingLeft: 16,
+    paddingRight: 16,
     paddingTop: 60,
   },
   
-  // Container des messages selon spécifications
+  // Container des messages
   messageContainer: {
-    marginBottom: 12, // 12px entre bulles
+    marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
@@ -416,17 +430,25 @@ const styles = StyleSheet.create({
   },
   userMessageContainer: {
     justifyContent: 'flex-end',
-    flexDirection: 'row-reverse',
+    alignItems: 'flex-end',
+    width: '100%',
   },
   
-  // Avatar section selon spécifications (40x40px, 8px espacement)
+  // Wrapper spécial pour messages user collés à droite
+  userMessageWrapper: {
+    width: '100%',
+    alignItems: 'flex-end',
+    marginBottom: 12,
+  },
+  
+  // Avatar section
   avatarSection: {
     alignItems: 'center',
-    marginHorizontal: 8, // 8px d'espacement
+    marginHorizontal: 8,
     marginBottom: 4,
   },
   avatarContainer: {
-    width: 40, // 40x40px selon spécifications
+    width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'white',
@@ -443,59 +465,55 @@ const styles = StyleSheet.create({
     height: 36,
   },
   neijiName: {
-    fontSize: 12, // 12px selon spécifications
-    color: '#6B7280', // Gris moyen
+    fontSize: 12,
+    color: '#6B7280',
     marginTop: 4,
     fontWeight: '500',
   },
   
-  // Bulles selon spécifications exactes
+  // Bulles
   messageBubble: {
-    paddingHorizontal: 12, // 12px horizontal selon spécifications
-    paddingVertical: 8, // 8px vertical selon spécifications
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 }, // offset Y: 2px selon spécifications
-    shadowOpacity: 0.1, // rgba(0,0,0,0.1) selon spécifications
-    shadowRadius: 4, // blur: 4px selon spécifications
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 3,
   },
-  
-  // Bulle Bot : Orange vif (#FF7043) avec coin bas-gauche carré
   botBubble: {
-    backgroundColor: '#FF7043', // Couleur exacte selon spécifications
-    borderRadius: 12, // 12px selon spécifications
-    borderBottomLeftRadius: 0, // Coin bas-gauche carré selon spécifications
+    backgroundColor: '#FF7043',
+    borderRadius: 12,
+    borderBottomLeftRadius: 0,
   },
-  
-  // Bulle User : Blanc avec coin bas-droit carré
   userBubble: {
-    backgroundColor: '#FFFFFF', // Blanc selon spécifications
-    borderRadius: 12, // 12px selon spécifications
-    borderBottomRightRadius: 0, // Coin bas-droit carré selon spécifications
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderBottomRightRadius: 0,
   },
   
-  // Textes selon spécifications
+  // Textes
   botMessageText: {
     fontSize: 16,
     lineHeight: 22,
     fontWeight: '400',
-    color: '#FFFFFF', // Blanc pur selon spécifications
+    color: '#FFFFFF',
   },
   userMessageText: {
     fontSize: 16,
     lineHeight: 22,
     fontWeight: '400',
-    color: '#374151', // Gris foncé selon spécifications
+    color: '#374151',
   },
   
-  // Curseur typewriter
+  // Curseur
   cursor: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '400',
   },
   
-  // Indicateur de frappe selon spécifications
+  // Indicateur de frappe
   typingContainer: {
     paddingHorizontal: 16,
     marginBottom: 10,
@@ -529,10 +547,10 @@ const styles = StyleSheet.create({
   dot2: { opacity: 0.7 },
   dot3: { opacity: 1 },
   
-  // Barre du bas selon spécifications
+  // Barre du bas
   inputWrapper: {
     position: 'absolute',
-    left: 16, // 16px minimum selon spécifications
+    left: 16,
     right: 16,
   },
   bottomBar: {
@@ -549,18 +567,14 @@ const styles = StyleSheet.create({
     elevation: 4,
     gap: 12,
   },
-  
-  // Bouton User (orange)
   userButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#FF7043', // Même couleur que les bulles
+    backgroundColor: '#FF7043',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  
-  // Bouton Paramètres
   settingsButton: {
     width: 48,
     height: 48,
@@ -572,8 +586,6 @@ const styles = StyleSheet.create({
   settingsButtonActive: {
     backgroundColor: '#ffe6e0',
   },
-  
-  // Input container
   inputContainer: {
     flex: 1,
     flexDirection: 'row',
