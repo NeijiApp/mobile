@@ -64,6 +64,13 @@ export default function TabLayout() {
         }}
       />
       <Stack.Screen
+        name='auth'
+        options={{
+          title: 'Authentication',
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
         name='manga'
         options={{
           title: 'Manga',

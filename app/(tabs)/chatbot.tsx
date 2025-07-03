@@ -23,6 +23,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { API_CONFIG } from '../../config/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Configuration API sécurisée
 const OPENAI_API_KEY = API_CONFIG.OPENAI_API_KEY;
@@ -198,12 +199,15 @@ function ChatbotContent() {
   const navigation = useNavigation();
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
+  const { user, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
-    // Message d'accueil
+    // Message d'accueil adapté selon l'état d'authentification
     const welcomeMessage: Message = {
       id: '0',
-      content: "Hey ! What is the one thing you want to improve in your life today ?",
+      content: isAuthenticated 
+        ? `Bonjour ${user?.name || user?.email} ! 🌟 Que souhaitez-vous améliorer dans votre vie aujourd'hui ? Vous avez accès à toutes les fonctionnalités premium !`
+        : "Hey ! What is the one thing you want to improve in your life today ? 💡 Psst... Cliquez sur l'icône utilisateur en bas pour vous connecter et accéder à toutes les fonctionnalités premium !",
       role: 'assistant',
       timestamp: new Date(),
       isAnimating: true
@@ -366,10 +370,24 @@ function ChatbotContent() {
         <View style={inputWrapperStyle}>
           <View style={styles.bottomBar}>
             <TouchableOpacity 
-              onPress={() => navigation.goBack()}
-              style={styles.userButton}
+              onPress={() => {
+                if (isAuthenticated) {
+                  // Afficher un menu de déconnexion
+                  Alert.alert(
+                    'Compte',
+                    `Connecté en tant que ${user?.name || user?.email}`,
+                    [
+                      { text: 'Annuler', style: 'cancel' },
+                      { text: 'Se déconnecter', onPress: logout, style: 'destructive' }
+                    ]
+                  );
+                } else {
+                  navigation.navigate('auth' as never);
+                }
+              }}
+              style={[styles.userButton, isAuthenticated && styles.userButtonAuthenticated]}
             >
-              <Ionicons name="person" size={24} color="white" />
+              <Ionicons name={isAuthenticated ? "person-circle" : "person"} size={24} color="white" />
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -848,6 +866,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF7043',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  userButtonAuthenticated: {
+    backgroundColor: '#10B981', // Vert pour indiquer la connexion
   },
   settingsButton: {
     width: 48,
